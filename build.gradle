@@ -1,0 +1,75 @@
+plugins {
+    id 'java-library'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'dlp.gradle'
+version = '1.0.0'
+
+// Configure the plugin descriptor
+// gradlePlugin {
+//     plugins {
+//         simplePlugin {
+//             id = 'dlp.gradle.msg-hook-plugin'
+//             implementationClass = 'dlp.gradle.MsgHookPlugin'
+//         }
+//     }
+// }
+
+task installGitHooks {
+    doLast {
+        def hooksDir = file(".git/hooks")
+        def hooksSourceDir = file("git-hooks")
+        def markerFile = file("$hooksDir/.hooks-installed")
+
+        if (!hooksSourceDir.exists()) {
+            println "No 'git-hooks' directory found. Skipping hook installation."
+            return
+        }
+
+        if (!markerFile.exists()) {
+            println "Installing Git hooks..."
+            copy {
+                from hooksSourceDir
+                into hooksDir
+                include '**/*'
+                fileMode = 0755 // Ensure hooks are executable
+            }
+            markerFile.text = "Git hooks installed on ${new Date()}"
+            println "Git hooks installed successfully."
+        } else {
+            println "Git hooks already installed. Skipping..."
+        }
+    }
+}
+
+// Ensure hooks are installed before the build process
+tasks.named('build') {
+    dependsOn installGitHooks
+}
+
+// Repositories to fetch dependencies
+repositories {
+    mavenCentral() // Adding mavenCentral repository
+    gradlePluginPortal() // This is needed for Gradle plugins
+}
+
+// Apply the checkstyle plugin for your custom plugin
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+}
+
+
+// Publishing configuration to publish to mavenLocal
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        mavenLocal() // Publish to the local Maven repository
+    }
+}

@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+import sys
+import re
+import subprocess
+
+# Define the regex pattern for valid branch names
+# Example: feature/<name>, bugfix/<name>, or hotfix/<name>
+branch_pattern = r"^(feature|bugfix|hotfix)/[a-z0-9-]+$"
+
+# Get the current branch name
+def get_current_branch():
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print("❌ ERROR: Failed to get the current branch name.")
+        sys.exit(1)
+
+# Validate the branch name
+def validate_branch_name(branch_name):
+    if not re.match(branch_pattern, branch_name):
+        print(f"❌ ERROR: Invalid branch name format: {branch_name}\n")
+        print("Branch names must follow the format: <type>/<branch-name>")
+        print("Valid branch types: feature, bugfix, hotfix, docs, chore, refactor, test")
+        sys.exit(1)
+
+# Get the current branch name
+current_branch = get_current_branch()
+
+# Validate the branch name
+validate_branch_name(current_branch)
+
+# If valid, proceed with the push
+print(f"✅ Branch name '{current_branch}' is valid. Proceeding with the push.")

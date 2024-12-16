@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+import sys
+import re
+
+# Define the regex pattern for validating commit messages
+pattern = r"^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\([a-zA-Z0-9._-]+\))?:\s.+$"
+
+# Read the commit message from the file
+commit_msg_file = sys.argv[1]
+with open(commit_msg_file, 'r') as f:
+    commit_msg = f.read().strip()
+
+# Validate the commit message
+if not re.match(pattern, commit_msg):
+    print(f"❌ ERROR: Invalid commit message format.\n")
+    print(f"Your commit message does not follow the Conventional Commits format:\n")
+    print(f"  <type>(<optional scope>): <description>\n")
+    print(f"Valid commit types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert\n")
+    print(f"Commit message provided: {commit_msg}")
+    sys.exit(1)
+
+print("✅ Commit message validated successfully.")
